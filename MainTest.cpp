@@ -46,10 +46,17 @@ void readFile() {
 
 }
 
+
+// Die Methode readFile() liest eine Datei ein und zeigt die geschriebenen Informationen in der Konsole aus.
 void writeFile() {
 
 }
 
+
+/*
+Die Methode collectGarbage() gibt die Betriebssystemressourcen frei vor beenden des Programms.
+Sprich beendet die erstellten Prozesse und gibt somit die Ressourcen frei.
+*/
 void collectGarbage() {
 
 }
