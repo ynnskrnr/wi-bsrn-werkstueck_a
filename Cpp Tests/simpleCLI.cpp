@@ -19,12 +19,14 @@ int fehlversucheBeiEingabe(int &counter, int max = 5){
         }
 
         counter++;
+        system("clear");
         return fehlversucheBeiEingabe(counter);
     }
 }
 
 int main(){
     int counter = 0;
+    system("clear");
 
     if (fehlversucheBeiEingabe(counter)){
         cout << "Fehlversuche: " << counter << endl;
