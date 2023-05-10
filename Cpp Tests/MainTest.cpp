@@ -11,14 +11,14 @@ int main()
 }
 
 
-// Die Methode createProcess() erzeugt ein Prozess. 
+// Die Methode createProcess() erzeugt ein Prozess. Erstellt einen Kindprozess und einen Elternprozess. 
 void createProcess() {
-	int rueckgabewert = fork();
+	int pid = fork();
 
-	if (rueckgabewert == 0) {
+	if (pid == 0) {
 		cout << "Kindprozess" << endl;
 	}
-	else if (rueckgabewert > 0) {
+	else if (pid > 0) {
 		cout << "Elternprozess" << endl;
 	}
 	else {
