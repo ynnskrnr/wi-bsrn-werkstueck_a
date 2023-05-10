@@ -34,7 +34,7 @@ void forkProcess() {}
 
 // Die Methode execProcess() ersetzt den Prozess aus createProcess(). 
 void execProcess() {
-
+	
 }
 
 // Die Methode showProcessInformation() gibt die zentralen Informationen der erzeugten Prozesse aus.
