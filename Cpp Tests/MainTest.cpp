@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-
 using namespace std;
 
 int main()
@@ -12,10 +11,10 @@ int main()
 }
 
 
-// Die Methode createProcess() erzeugt ein Prozess.
+// Die Methode createProcess() erzeugt ein Prozess. 
 void createProcess() {
 	int rueckgabewert = fork();
-	
+
 	if (rueckgabewert == 0) {
 		cout << "Kindprozess" << endl;
 	}
@@ -26,13 +25,12 @@ void createProcess() {
 		cout << "Fehler" << endl;
 	}
 
-
 }
 
-// Die Methode forkProcess() erstellt ein Duplikat von dem erstellten Prozess aus createProcess().
-void forkProcess() {
-
-}
+/*
+Die Methode forkProcess() gemaeß Lösungskizze ist das gleiche wie createProcess().
+void forkProcess() {}
+*/
 
 // Die Methode execProcess() ersetzt den Prozess aus createProcess(). 
 void execProcess() {
