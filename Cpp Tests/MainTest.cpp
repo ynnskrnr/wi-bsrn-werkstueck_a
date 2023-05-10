@@ -1,4 +1,7 @@
 #include <iostream>
+#include <unistd.h>
+#include <stdlib.h>
+
 
 using namespace std;
 
@@ -11,6 +14,18 @@ int main()
 
 // Die Methode createProcess() erzeugt ein Prozess.
 void createProcess() {
+	int rueckgabewert = fork();
+	
+	if (rueckgabewert == 0) {
+		cout << "Kindprozess" << endl;
+	}
+	else if (rueckgabewert > 0) {
+		cout << "Elternprozess" << endl;
+	}
+	else {
+		cout << "Fehler" << endl;
+	}
+
 
 }
 
