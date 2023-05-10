@@ -23,7 +23,7 @@ void createProcess() {
 	}
 	else {
 		cout << "Fehler" << endl;
-	}
+	}//Hallo
 
 }
 
