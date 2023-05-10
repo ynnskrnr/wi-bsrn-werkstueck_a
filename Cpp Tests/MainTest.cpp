@@ -1,19 +1,24 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 using namespace std;
 
 int main()
 {
-	cout << "HalloWelt!" << endl;
+	createProcess();
 	return 0;
 }
 
 
 // Die Methode createProcess() erzeugt ein Prozess. Erstellt einen Kindprozess und einen Elternprozess. 
 void createProcess() {
-	int pid = fork();
+	// pid_t ist ein Datentyp, der eine Prozess-ID repräsentiert.
+	pid_t pid;
+
+	// fork() erzeugt einen Kindprozess. fork() gibt 0 zurück, wenn es sich um den Kindprozess handelt. fork() gibt die Prozess-ID des Kindprozesses zurück, wenn es sich um den Elternprozess handelt. fork() gibt -1 zurück, wenn ein Fehler auftritt.
+	pid = fork();
 
 	if (pid == 0) {
 		cout << "Kindprozess" << endl;
@@ -23,7 +28,7 @@ void createProcess() {
 	}
 	else {
 		cout << "Fehler" << endl;
-	}//Hallo
+	}
 
 }
 
