@@ -75,6 +75,15 @@ void collectGarbage() {
 
 int main()
 {
+	cout << "1. Prozess erstellen" << endl;
+	cout << "2. Prozessverkettung" << endl;
+	cout << "3. Prozessinformationen anzeigen" << endl;
+    cout << "4. Ergebnisse in Datei schreiben" << endl;
+    cout << "5. Ergebnisse aus Datei lesen" << endl;
+    cout << "6. Betriebssystemressourcen freigeben und beenden" << endl;
+    cout << "Bitte wählen Sie eine Option: ";
+
+
 	createProcess();
 	return 0;
 }
