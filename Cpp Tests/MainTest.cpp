@@ -5,12 +5,6 @@
 
 using namespace std;
 
-int main()
-{
-	createProcess();
-	return 0;
-}
-
 
 // Die Methode createProcess() erzeugt ein Prozess. Erstellt einen Kindprozess und einen Elternprozess. 
 void createProcess() {
@@ -77,4 +71,10 @@ Sprich beendet die erstellten Prozesse und gibt somit die Ressourcen frei.
 */
 void collectGarbage() {
 
+}
+
+int main()
+{
+	createProcess();
+	return 0;
 }
