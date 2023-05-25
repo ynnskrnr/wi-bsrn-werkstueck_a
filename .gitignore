@@ -402,3 +402,4 @@ FodyWeavers.xsd
 .vscode/settings.json
 *.json
 Cpp Tests/MainTest
+Cpp Tests/forkTests/exec/execTest
