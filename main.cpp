@@ -89,7 +89,7 @@ int main()
             {
                 date();
             }
-            sleep(1);
+            usleep(1500);
             break;
         // PIDs ausgeben
         case 2:
@@ -111,7 +111,7 @@ int main()
             {
                 exec("./options/helloWorld");
             }
-            sleep(1);
+            usleep(1500);
             break;
         // Falsche eingabe
         default:
