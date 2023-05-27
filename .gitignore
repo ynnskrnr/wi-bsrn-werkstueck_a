@@ -403,3 +403,4 @@ FodyWeavers.xsd
 *.json
 Cpp Tests/MainTest
 Cpp Tests/forkTests/exec/execTest
+main
