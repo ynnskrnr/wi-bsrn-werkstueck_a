@@ -4,6 +4,7 @@
 #include <unistd.h>
 // Fuer abfang von fehlereingaben
 #include <limits>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -38,6 +39,21 @@ void exec(const char *path)
 {
     const char *args = NULL;
     execl(path, args, (char *)NULL);
+}
+
+void releaseResources(vector<pid_t>& prozesse) {
+    int status;
+    for (pid_t pid : prozesse) {
+        if (waitpid(pid, &status, 0) == -1) {
+            perror("waitpid fehlgeschlagen");
+        } else {
+            if (WIFEXITED(status)) {
+                cout << "Kindprozess " << pid << " wurde beendet. Exit-Status: " << WEXITSTATUS(status) << endl;
+            } else if (WIFSIGNALED(status)) {
+                cout << "Kindprozess " << pid << " wurde durch Signal beendet: " << WTERMSIG(status) << endl;
+            }
+        }
+    }
 }
 
 // main
@@ -119,6 +135,8 @@ int main()
             break;
         }
     }
+
+    releaseResources(prozesse);
 
     return 0;
 }
