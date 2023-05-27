@@ -5,6 +5,8 @@
 // Fuer abfang von fehlereingaben
 #include <limits>
 #include <sys/wait.h>
+// include syscalls
+#include <sys/syscall.h>
 
 using namespace std;
 
@@ -15,12 +17,13 @@ Gibt 1 zuerueck wenn der laufende Prozess der Kinderprozess ist
 */
 int addChild(vector<pid_t> &prozesse)
 {
-    prozesse.push_back(fork());
-    if (!prozesse.back())
+    pid_t pid = fork();
+    if (pid)
     {
-        return 1;
+        prozesse.push_back(pid);
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 /*
@@ -39,6 +42,13 @@ void exec(const char *path)
 {
     const char *args = NULL;
     execl(path, args, (char *)NULL);
+}
+
+void exec(string path)
+{
+    const char *pathC = path.c_str();
+    const char *args = NULL;
+    execl(pathC, args, (char *)NULL);
 }
 
 void releaseResources(vector<pid_t>& prozesse) {
@@ -62,9 +72,11 @@ int main()
     string optionen[] = {"Datum Ausgeben",
                          "PIDs Ausgeben",
                          "Beenden",
-                         "Hello World! mit fork() und exec()"};
+                         "Hello World! mit fork() und exec()"/*,
+                         "Freigabe test"*/};
     vector<pid_t> prozesse;
     // Fuegt Vaterprozess hinzu (sinnvoll, oder nicht? Zum bereinigen der ressourcen, nicht. Ansonsten schon.)
+    // getpid() = syscall(SYS_getpid)
     //prozesse.push_back(getpid());
 
     bool running = true;
@@ -105,7 +117,7 @@ int main()
             {
                 date();
             }
-            usleep(1500);
+            usleep(100000);
             break;
         // PIDs ausgeben
         case 2:
@@ -127,8 +139,13 @@ int main()
             {
                 exec("./options/helloWorld");
             }
-            usleep(1500);
+            usleep(100000);
             break;
+        /*case 5:
+            system("ps");
+            releaseResources(prozesse);
+            system("ps");
+            break;*/
         // Falsche eingabe
         default:
             cout << "Falsche Eingabe" << endl;
