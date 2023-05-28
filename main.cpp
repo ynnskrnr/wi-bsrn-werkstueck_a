@@ -126,6 +126,10 @@ int main()
     bool running = true;
     int option;
 
+    // Erstellen einer ergebnisse Textdatei und umlenken der Standardausgabe in die Textdatei
+    FILE *outputFile = fopen("ergebnisse.txt", "w");
+    freopen("ergebnisse.txt", "w", stdout);
+
     menu();
 
     while (running)
@@ -175,6 +179,9 @@ int main()
     }
 
     releaseResources(prozesse);
+
+    // Schliessen der ergebnisse Textdatei
+    fclose(outputFile);
 
     return 0;
 }
