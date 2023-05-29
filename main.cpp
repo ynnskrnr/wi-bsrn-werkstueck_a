@@ -55,21 +55,29 @@ void exec(string path)
     execl(pathC, args, (char *)NULL);
 }
 
+/*
+Terminiert und loescht alle laufenden Prozesse
+*/
 void releaseResources(vector<pid_t> &prozesse)
 {
     int status;
     for (pid_t pid : prozesse)
     {
+        // Terminiert noch laufende Prozesse
+        kill(pid, SIGTERM);
+        // Prueft ob prozess bereits durchlaufen, oder terminiert wurde
         if (waitpid(pid, &status, 0) == -1)
         {
             perror("waitpid fehlgeschlagen");
         }
         else
         {
+            // Prozess ist durchlaufen
             if (WIFEXITED(status))
             {
                 cout << "Kindprozess " << pid << " wurde beendet. Exit-Status: " << WEXITSTATUS(status) << endl;
             }
+            // Prozess wurde terminiert 
             else if (WIFSIGNALED(status))
             {
                 cout << "Kindprozess " << pid << " wurde durch Signal beendet: " << WTERMSIG(status) << endl;
