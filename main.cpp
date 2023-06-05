@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 // include syscalls
 #include <sys/syscall.h>
+#include <fstream>
 
 using namespace std;
 
@@ -98,6 +99,7 @@ void menu()
         "PIDs Ausgeben",
         "Beenden",
         "Hello World! mit fork() und exec()",
+        "ReadFile",
         "Clear"};
     int optionenSize = sizeof(optionen) / sizeof(string);
 
@@ -124,26 +126,63 @@ int input()
     return option;
 }
 
-void readFile()
-{   // Eingabe des Dateinamen aus dem man auslesen möchte
-    string filename;
-    cout << "Bitte geben Sie den Dateinamen ein: ";
-    cin >> filename;
+string readFile(string path = "ergebnisse.txt")
+{   
+    ifstream file(path);
     // Fehler abfangen wenn die Datei nicht existiert(oder andere Fehler)
-    ifstream file(filename);
     if (!file)
     {
-        cout << "Fehler beim Öffnen der Datei!" << endl;
-        return;
+        return "Fehler beim Öffnen der Datei!\n";
     }
     // Auslesen der Datei Zeile für Zeile
-    string line;
+    string line, data = "";
     while (getline(file, line))
     {
-        cout << line << endl;
+        data += line+"\n";
     }
-
     file.close();
+    return data;
+}
+
+string getProcessInfo(pid_t pid, string info){
+    string path = "/proc/" + to_string(pid) + "/" + info;
+    return readFile(path);
+}
+
+int writeFile(string text, string path = "ergebnisse.txt", char mode = 'a'){
+    ofstream f;
+    try{       
+        if (mode == 'a'){
+            f.open(path, ios::app);
+        }else{
+            f.open(path);
+        }
+        f << text;
+        f.close();
+        return 1;
+    }
+    catch(exception e){
+        return 0;
+    }
+}
+
+string processData(vector<pid_t> *prozesse){
+    string data, path;
+    // Heaer                              mem: size, resident, share, text, lib, data, dt : in pages(4kb)
+    cout <<  "PID\t" /*<< "Rechte\t" << "UID\t"*/ << "MEM\t" << endl;
+    for(pid_t pid : *prozesse){
+        data += to_string(pid) + "\t";
+        // Rechte
+        //data += getProcessInfo(pid, "maps");
+        // UID
+        //data += getProcessInfo(pid, "status");
+        // MEM
+        data += getProcessInfo(pid, "statm");
+        data += "\n";
+    }
+    
+
+    return data;
 }
 
 // main
@@ -155,19 +194,23 @@ int main()
     // prozesse.push_back(getpid());
 
     bool running = true;
-    int option;
+    int option, request = 0;
+    string output, path;
 
     // Erstellen einer ergebnisse Textdatei und umlenken der Standardausgabe in die Textdatei
-    FILE *outputFile = //fopen("ergebnisse.txt", "w");
-    freopen("ergebnisse.txt", "w", stdout);
+    //FILE *outputFile = fopen("ergebnisse.txt", "w");
+    //freopen("ergebnisse.txt", "w", stdout);
 
     menu();
 
     while (running)
     {
+        request++;
+        output = "";
         // Eingabe
         option = input();
 
+        cout << request << ". " << "Request: " << endl;
         // Ausfuehrung der gewaehlten Option
         switch (option)
         {
@@ -182,9 +225,12 @@ int main()
         case 2:
             for (pid_t i : prozesse)
             {
-                cout << i << ",\t";
+                output += to_string(i) + ",\t";
             }
-            cout << endl;
+            output += "\n";
+            writeFile("PIDs from request " + to_string(request) + ": " + output);
+            cout << output;
+            cout << processData(&prozesse);
             break;
         // Beenden
         case 3:
@@ -200,7 +246,11 @@ int main()
             }
             break;
         case 5:
-            readFile();
+            // Eingabe des Dateinamen aus dem man auslesen möchte
+            //cout << "Bitte geben Sie den Dateinamen ein: ";
+            //cin >> path;
+            //cout << readFile(path);
+            cout << readFile();
             break;
         case 6:
             menu();
@@ -215,7 +265,7 @@ int main()
     releaseResources(prozesse);
 
     // Schliessen der ergebnisse Textdatei
-    fclose(outputFile);
+    //fclose(outputFile);
 
     return 0;
 }
