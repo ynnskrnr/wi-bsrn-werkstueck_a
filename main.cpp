@@ -61,6 +61,7 @@ Terminiert und loescht alle laufenden Prozesse
 void releaseResources(vector<pid_t> &prozesse)
 {
     int status;
+    sleep(1);
     for (pid_t pid : prozesse)
     {
         // Terminiert noch laufende Prozesse
@@ -135,7 +136,7 @@ int main()
     int option;
 
     // Erstellen einer ergebnisse Textdatei und umlenken der Standardausgabe in die Textdatei
-    FILE *outputFile = fopen("ergebnisse.txt", "w");
+    FILE *outputFile = //fopen("ergebnisse.txt", "w");
     freopen("ergebnisse.txt", "w", stdout);
 
     menu();
