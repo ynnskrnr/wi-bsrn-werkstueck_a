@@ -124,6 +124,28 @@ int input()
     return option;
 }
 
+void readFile()
+{   // Eingabe des Dateinamen aus dem man auslesen möchte
+    string filename;
+    cout << "Bitte geben Sie den Dateinamen ein: ";
+    cin >> filename;
+    // Fehler abfangen wenn die Datei nicht existiert(oder andere Fehler)
+    ifstream file(filename);
+    if (!file)
+    {
+        cout << "Fehler beim Öffnen der Datei!" << endl;
+        return;
+    }
+    // Auslesen der Datei Zeile für Zeile
+    string line;
+    while (getline(file, line))
+    {
+        cout << line << endl;
+    }
+
+    file.close();
+}
+
 // main
 int main()
 {
@@ -178,6 +200,9 @@ int main()
             }
             break;
         case 5:
+            readFile();
+            break;
+        case 6:
             menu();
             break;
         // Falsche eingabe
