@@ -14,9 +14,9 @@
 using namespace std;
 
 /**
- *  @brief Erzeugt Prozess
- *  @param prozesse  Fuegt Kinderprozess in den Prozesse vector ein
- *  @return  Gibt 1 zuerueck wenn der laufende Prozess der Kinderprozess ist.
+ *  @brief Erzeugt parallele laufenden Kinderprozess
+ *  @param prozesse  Prozesse vector in den der Kinderprozess eingefuegt wird
+ *  @return  1 = Child, 0 = Parent.
  */
 int addChild(vector<pid_t> &prozesse)
 {
@@ -31,7 +31,6 @@ int addChild(vector<pid_t> &prozesse)
 
 /**
  *  @brief Aktueller Prozess wird durch date ersetzt
- *
  */
 void date()
 {
@@ -41,7 +40,6 @@ void date()
 /**
  *  @brief Vereinfachte Version der exec Familie. Startet Datei
  *  @param path  Pfad von der zu startenden Datei
- *
  */
 void exec(const char *path)
 {
@@ -52,7 +50,6 @@ void exec(const char *path)
 /**
  *  @brief Vereinfachte Version der exec Familie. Startet Datei
  *  @param path  Pfad von der zu startenden Datei
- *
  */
 void exec(string path)
 {
@@ -64,7 +61,6 @@ void exec(string path)
 /**
  *  @brief Terminiert und loescht alle laufenden Prozesse
  *  @param prozesse  Vector mit allen Prozessen
- *
  */
 void releaseResources(vector<pid_t> &prozesse)
 {
@@ -97,7 +93,6 @@ void releaseResources(vector<pid_t> &prozesse)
 
 /**
  *  @brief Cleart das Terminal und gibt das Menue aus
- *
  */
 void menu()
 {
@@ -120,7 +115,6 @@ void menu()
 /**
  *  @brief Fragt an welches Funktion des Programms gestartet werden soll
  *  @return  Eingegebene Option.
- *
  */
 int input()
 {
@@ -143,7 +137,6 @@ int input()
  *  @brief Liest inhalt einer Datei aus
  *  @param path  Pfad von der zu lesenden Datei
  *  @return  Inhalt der Datei
- *
  */
 string readFile(string path = "ergebnisse.txt")
 {
@@ -169,7 +162,6 @@ string readFile(string path = "ergebnisse.txt")
  *  @param path  Pfad von der zu schreibenden Datei
  *  @param mode  a = ios::app = append, else = write
  *  @return  1 = erfolgreich, 0 = fehler.
- *
  */
 int writeFile(string text = "", char mode = 'a', string path = "ergebnisse.txt")
 {
@@ -203,7 +195,6 @@ int writeFile(string text = "", char mode = 'a', string path = "ergebnisse.txt")
  *  @param pid  PID des Prozesses
  *  @param info  /proc/[pid]/...info
  *  @return  Ergebnis der Anfrage.
- *
  */
 string procReq(pid_t pid, string info)
 {
@@ -215,9 +206,8 @@ string procReq(pid_t pid, string info)
  *  @brief Liest die Informationen aller Prozesse aus
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste der Prozessinformationen von allen Prozessen.
- *
  */
-vector<vector<string>> processData(vector<pid_t> *prozesse)
+vector<vector<string>> getStatData(vector<pid_t> *prozesse)
 {
     vector<vector<string>> stats;
     string procPIDstat;
@@ -242,18 +232,84 @@ vector<vector<string>> processData(vector<pid_t> *prozesse)
  *  @brief Prozessinformationen als Tabelle
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Prozessinformationen von allen Prozessen als Tabelle.
- *
  */
-string processInfo(vector<pid_t> *prozesse)
+string statInfoToString(vector<pid_t> *prozesse)
 {
     // Header
-    string output = "PID ; Rechte ; UID ; GID ; RAM ; Name\n";
-    vector<vector<string>> stats = processData(prozesse);
+    string output = "\t--- Process info ---\nPID\tRechte\tUID\tGID\tRAM\tName\n";
+    vector<vector<string>> stats = getStatData(prozesse);
 
     for (vector<string> stat : stats)
     {
         // TODO ergaenzen/erweitern
-        output += stat[0] + " ; " + "Rechte" + " ; " + " UID" + " ; " + " GID" + " ; " + stat[22] + " ; " + stat[1];
+        output += stat[0] + "\t" + "Rechte" + "\t" + stat[3] + "\t" + stat[4] + "\t" + stat[22] + "\t" + stat[1];
+        output += "\n";
+    }
+    return output;
+}
+
+/** 
+ *  @brief Liest die Informationen ueber RAM-Nutzung aller Prozesse aus
+ *  @param prozesse  Liste der PIDs der Prozesse
+ *  @return  Liste der Prozessinformationen von allen Prozessen.
+ */
+vector<vector<string>> getStatmData(vector<pid_t> *prozesse)
+{
+    vector<vector<string>> stats;
+    string procPIDstat;
+    for (pid_t pid : *prozesse)
+    {
+        procPIDstat = procReq(pid, "statm");
+
+        int i = 0, words = 7;
+        vector<string> statArray(words);
+        stringstream ssin(procPIDstat);
+        while (ssin.good() && i < words)
+        {
+            ssin >> statArray[i];
+            i++;
+        }
+        stats.push_back(statArray);
+    }
+    return stats;
+}
+
+/**
+ *  @brief Ram-Informationen als Tabelle
+ *  @param prozesse  Liste der PIDs der Prozesse
+ *  @return  Ram-Informationen von allen Prozessen als Tabelle.
+ */
+string memInfoToString(vector<pid_t> *prozesse)
+{
+    // Header
+    string output = "\t--- Memory Usgae info ---\nsize\tresident\tshare\ttext\tdata\n";
+    vector<vector<string>> stats = getStatmData(prozesse);
+
+    for (vector<string> stat : stats)
+    {
+        output += stat[0] + "\t" + stat[1] + "\t\t" + stat[2] + "\t" + stat[3] + "\t" + stat[5];
+        output += "\n";
+    }
+    return output;
+}
+
+// TODO Rechte anzeigen lassen
+/**
+ *  @brief Alle Prozessinformationen als Tabelle
+ *  @param prozesse  Liste der PIDs der Prozesse
+ *  @return  Alle Prozessinformationen von allen Prozessen als Tabelle.
+ */
+string processInfoToString(vector<pid_t> *prozesse)
+{
+    // Header
+    string output = "----- Process info -----\t\t\t----- Memory Usgae -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
+    vector<vector<string>> stats = getStatData(prozesse);
+    vector<vector<string>> mems = getStatmData(prozesse);
+
+    for (size_t i = 0; i < stats.size(); i++)
+    {
+        stats[i][1].length() < 8 ? stats[i][1] += "\t" : "";
+        output += stats[i][0] + "\t" + "Rechte" + "\t" + stats[i][3] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" + mems[i][0] + "\t" + mems[i][1] + "\t\t" + mems[i][2] + "\t" + mems[i][3] + "\t" + mems[i][5];
         output += "\n";
     }
     return output;
@@ -299,7 +355,7 @@ int main()
                 date();
             }
             break;
-        // PIDs ausgeben
+        // PID infos ausgeben
         case 2:
             for (pid_t i : prozesse)
             {
@@ -308,7 +364,9 @@ int main()
             output += "\n";
             writeFile("PIDs from request " + to_string(request) + ": " + output);
             cout << output << endl;
-            cout << processInfo(&prozesse) << endl;
+            // cout << statInfoToString(&prozesse) << endl;
+            // cout << memInfoToString(&prozesse) << endl;
+            cout << processInfoToString(&prozesse) << endl;
 
             break;
         // Beenden
