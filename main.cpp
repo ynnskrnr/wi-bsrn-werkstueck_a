@@ -205,7 +205,9 @@ string procReq(pid_t pid, string info)
 /**
  *  @brief Liest die Informationen aller Prozesse aus
  *  @param prozesse  Liste der PIDs der Prozesse
- *  @return  Liste der Prozessinformationen von allen Prozessen.
+ *  @return  Liste (44 Spalten) der Prozessinformationen von allen Prozessen.
+ *  @returns 0 = PID, 1 = filename, 2 = state, 3 = PPID, 4 = GID, 5 = UID, ...
+ *  @details https://linux.die.net/man/5/proc (/proc/[pid]/stat)
  */
 vector<vector<string>> getStatData(vector<pid_t> *prozesse)
 {
@@ -236,22 +238,22 @@ vector<vector<string>> getStatData(vector<pid_t> *prozesse)
 string statInfoToString(vector<pid_t> *prozesse)
 {
     // Header
-    string output = "\t--- Process info ---\nPID\tRechte\tUID\tGID\tRAM\tName\n";
+    string output = "\t--- Process info ---\nPID\tUID\tGID\tRAM\tName\n";
     vector<vector<string>> stats = getStatData(prozesse);
 
     for (vector<string> stat : stats)
     {
-        // TODO ergaenzen/erweitern
-        output += stat[0] + "\t" + "Rechte" + "\t" + stat[3] + "\t" + stat[4] + "\t" + stat[22] + "\t" + stat[1];
+        output += stat[0] + "\t" + "\t" + stat[3] + "\t" + stat[4] + "\t" + stat[22] + "\t" + stat[1];
         output += "\n";
     }
     return output;
 }
 
-/** 
+/**
  *  @brief Liest die Informationen ueber RAM-Nutzung aller Prozesse aus
  *  @param prozesse  Liste der PIDs der Prozesse
- *  @return  Liste der Prozessinformationen von allen Prozessen.
+ *  @return  Liste (7 Spalten) der RAM-Nutzung von allen Prozessen.
+ *  @returns 0 = size, 1 = resident, 2 = share, 3 = text, 4 = lib, 5 = data, 6 = dt
  */
 vector<vector<string>> getStatmData(vector<pid_t> *prozesse)
 {
@@ -293,6 +295,55 @@ string memInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
+/**
+ *  @brief Liest die Informationen ueber Speicheradresse und Rechte aller Prozesse aus
+ *  @param prozesse  Liste der PIDs der Prozesse
+ *  @return  Liste (6 Spalten) der Speicheradresse und Rechte allen Prozessen.
+ *  @returns 0 = Speicheradresse, 1 = Rechte, 2 = Offset, 3 = Device, 4 = Inode, 5 = Dateiname
+ *  @details Rechte: r = read, w = write, x = execute, s = shared, p = private (copy on write)
+ */
+vector<vector<string>> getMapsData(vector<pid_t> *prozesse)
+{
+    vector<vector<string>> stats;
+    string procPIDstat;
+    for (pid_t pid : *prozesse)
+    {
+        procPIDstat = procReq(pid, "maps");
+
+        int i = 0, words = 6;
+        vector<string> statArray(words);
+        stringstream ssin(procPIDstat);
+        while (ssin.good() && i < words)
+        {
+            ssin >> statArray[i];
+            i++;
+        }
+        stats.push_back(statArray);
+    }
+    return stats;
+}
+
+/**
+ *  @brief Speicheradresse und Rechte als Tabelle
+ *  @param prozesse  Liste der PIDs der Prozesse
+ *  @return  Speicheradresse und Rechte von allen Prozessen als Tabelle.
+ */
+string mapsInfoToString(vector<pid_t> *prozesse)
+{
+    // Header
+    string output = "--- Mapped Memory and Permissions ---\naddress\t\t\t\tperms\toffset\t\tdev\tinode\tpathname\n";
+    vector<vector<string>> maps = getMapsData(prozesse);
+
+    for (vector<string> map : maps)
+    {
+        for (string ma : map)
+        {
+            output += ma + "\t";
+        }
+    }
+    return output;
+}
+
 // TODO Rechte anzeigen lassen
 /**
  *  @brief Alle Prozessinformationen als Tabelle
@@ -305,11 +356,13 @@ string processInfoToString(vector<pid_t> *prozesse)
     string output = "----- Process info -----\t\t\t----- Memory Usgae -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
     vector<vector<string>> stats = getStatData(prozesse);
     vector<vector<string>> mems = getStatmData(prozesse);
+    vector<vector<string>> maps = getMapsData(prozesse);
 
     for (size_t i = 0; i < stats.size(); i++)
     {
         stats[i][1].length() < 8 ? stats[i][1] += "\t" : "";
-        output += stats[i][0] + "\t" + "Rechte" + "\t" + stats[i][3] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" + mems[i][0] + "\t" + mems[i][1] + "\t\t" + mems[i][2] + "\t" + mems[i][3] + "\t" + mems[i][5];
+        output += stats[i][0] + "\t" + maps[i][1] + "\t" + stats[i][3] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" +
+                  mems[i][0] + "\t" + mems[i][1] + "\t\t" + mems[i][2] + "\t" + mems[i][3] + "\t" + mems[i][5] + "\t";
         output += "\n";
     }
     return output;
@@ -366,6 +419,7 @@ int main()
             cout << output << endl;
             // cout << statInfoToString(&prozesse) << endl;
             // cout << memInfoToString(&prozesse) << endl;
+            //cout << mapsInfoToString(&prozesse) << endl;
             cout << processInfoToString(&prozesse) << endl;
 
             break;
