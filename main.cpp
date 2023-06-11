@@ -215,7 +215,7 @@ vector<vector<string>> getStatData(vector<pid_t> *prozesse)
     string procPIDstat;
     for (pid_t pid : *prozesse)
     {
-        procPIDstat = procReq(pid, "stat");
+        procPIDstat = procReq(pid, "stat"); // info von /proc/[pid]/stat
 
         int i = 0, words = 44;
         vector<string> statArray(words);
@@ -231,6 +231,7 @@ vector<vector<string>> getStatData(vector<pid_t> *prozesse)
 }
 
 /**
+ *  @note Nicht benutzen
  *  @brief Prozessinformationen als Tabelle
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Prozessinformationen von allen Prozessen als Tabelle.
@@ -243,7 +244,7 @@ string statInfoToString(vector<pid_t> *prozesse)
 
     for (vector<string> stat : stats)
     {
-        output += stat[0] + "\t" + "\t" + stat[3] + "\t" + stat[4] + "\t" + stat[22] + "\t" + stat[1];
+        output += stat[0] + "\t" + "\t" + stat[4] + "\t" + stat[5] + "\t" + stat[24] + "\t" + stat[1];
         output += "\n";
     }
     return output;
@@ -344,7 +345,6 @@ string mapsInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
-// TODO Rechte anzeigen lassen
 /**
  *  @brief Alle Prozessinformationen als Tabelle
  *  @param prozesse  Liste der PIDs der Prozesse
@@ -361,7 +361,7 @@ string processInfoToString(vector<pid_t> *prozesse)
     for (size_t i = 0; i < stats.size(); i++)
     {
         stats[i][1].length() < 8 ? stats[i][1] += "\t" : "";
-        output += stats[i][0] + "\t" + maps[i][1] + "\t" + stats[i][3] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" +
+        output += stats[i][0] + "\t" + maps[i][1] + "\t" + stats[i][5] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" +
                   mems[i][0] + "\t" + mems[i][1] + "\t\t" + mems[i][2] + "\t" + mems[i][3] + "\t" + mems[i][5] + "\t";
         output += "\n";
     }
@@ -419,7 +419,7 @@ int main()
             cout << output << endl;
             // cout << statInfoToString(&prozesse) << endl;
             // cout << memInfoToString(&prozesse) << endl;
-            //cout << mapsInfoToString(&prozesse) << endl;
+            // cout << mapsInfoToString(&prozesse) << endl;
             cout << processInfoToString(&prozesse) << endl;
 
             break;
