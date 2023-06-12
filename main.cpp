@@ -91,25 +91,27 @@ void releaseResources(vector<pid_t> &prozesse)
     }
 }
 
+enum Optionen
+{
+    Datum_Ausgeben = 1,
+    PIDs_Ausgeben = 2,
+    Hallo_Welt_Ausgeben = 3,
+    Readfile = 4,
+    Clear = 5,
+    Beenden = 6
+};
+
 /**
  *  @brief Cleart das Terminal und gibt das Menue aus
  */
 void menu()
 {
-    system("clear");
-    string optionen[] = {
-        "Datum Ausgeben",
-        "PIDs Ausgeben",
-        "Beenden",
-        "Hello World! mit fork() und exec()",
-        "ReadFile",
-        "Clear"};
-    int optionenSize = sizeof(optionen) / sizeof(string);
-
-    for (int i = 0; i < optionenSize; i++)
-    {
-        cout << i + 1 << ". " << optionen[i] << endl;
-    }
+        cout << 1 << ". " << "Datum Ausgeben" << endl;
+        cout << 2 << ". " << "Prozessinformationen_Ausgeben" << endl;
+        cout << 3 << ". " << "Hallo_Welt Ausgeben" << endl;
+        cout << 4 << ". " << "Readfile" << endl;
+        cout << 5 << ". " << "Clear" << endl;
+        cout << 6<< ". " << "Beenden und Systemressourcen Freigeben" << endl;
 }
 
 /**
@@ -368,6 +370,7 @@ string processInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
+
 // main
 int main()
 {
@@ -382,7 +385,7 @@ int main()
 
     // Erstellen einer ergebnisse Textdatei und umlenken der Standardausgabe in die Textdatei
     // FILE *outputFile = fopen("ergebnisse.txt", "w");
-    // freopen("ergebnisse.txt", "w", stdout);
+    // freopen("ergebnissoptione.txt", "w", stdout);
 
     // Clear ergebnisse.txt
     writeFile("", 'w');
@@ -399,17 +402,17 @@ int main()
         cout << request << ". "
              << "Request: " << endl;
         // Ausfuehrung der gewaehlten Option
-        switch (option)
-        {
+        switch (option){
         // Datum ausgeben
-        case 1:
+        case Datum_Ausgeben:
             if (addChild(prozesse))
             {
                 date();
             }
             break;
+
         // PID infos ausgeben
-        case 2:
+        case PIDs_Ausgeben:
             for (pid_t i : prozesse)
             {
                 output += to_string(i) + ",\t";
@@ -421,31 +424,35 @@ int main()
             // cout << memInfoToString(&prozesse) << endl;
             // cout << mapsInfoToString(&prozesse) << endl;
             cout << processInfoToString(&prozesse) << endl;
+            break;
 
-            break;
-        // Beenden
-        case 3:
-            cout << "Beenden" << endl;
-            running = false;
-            break;
         // Hello World! mit fork() und exec()
         // So werden die einzelnen Funktionen des Programms aufgerufen (Dateinen sind in options/)
-        case 4:
+        case Hallo_Welt_Ausgeben:
             if (addChild(prozesse))
             {
                 exec("./options/helloWorld");
             }
             break;
-        case 5:
-            // Eingabe des Dateinamen aus dem man auslesen möchte
-            // cout << "Bitte geben Sie den Dateinamen ein: ";
-            // cin >> path;
-            // cout << readFile(path);
+
+        // Eingabe des Dateinamen aus dem man auslesen möchte
+        // cout << "Bitte geben Sie den Dateinamen ein: ";
+        // cin >> path;
+        // cout << readFile(path);
+        case Readfile:
             cout << readFile();
             break;
-        case 6:
+        
+        // Menue Clearen
+        case Clear:
             menu();
             break;
+        // Prgramm beenden    
+        case Beenden:
+            cout << "Beenden" << endl;
+            running = false;
+            break;
+
         // Falsche eingabe
         default:
             cout << "Falsche Eingabe" << endl;
