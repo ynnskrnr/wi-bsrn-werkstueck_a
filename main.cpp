@@ -10,6 +10,7 @@
 // string to array
 #include <sstream>
 
+
 using namespace std;
 
 /**
@@ -156,7 +157,7 @@ int input()
  *  @param path  Pfad von der zu lesenden Datei
  *  @return  Inhalt der Datei
  */
-string readFile(string path = "ergebnisse.txt")
+string readFile(string path = "log/ergebnisse.txt")
 {
     ifstream file(path);
     // Fehler abfangen wenn die Datei nicht existiert(oder andere Fehler)
@@ -175,14 +176,31 @@ string readFile(string path = "ergebnisse.txt")
 }
 
 /**
+ *  @brief Gibt Datum und Uhrzeit aus
+ *  @return  Datum und Uhrzeit
+ */
+string dateTime()
+{
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    string date = to_string(ltm->tm_mday) + "." + to_string(1 + ltm->tm_mon) + "." + to_string(1900 + ltm->tm_year);
+    string time = to_string(ltm->tm_hour) + ":" + to_string(ltm->tm_min) + ":" + to_string(ltm->tm_sec);
+    return date + " " + time;
+}
+
+/**
  *  @brief Schreibt inhalt in eine Datei
  *  @param text  Text der in die Datei geschrieben werden soll
- *  @param path  Pfad von der zu schreibenden Datei
+ *  @param path  Pfad von der zu schreibenden Datei. Leer lassen um eine log Datei zu erstellen
  *  @param mode  a = ios::app = append, else = write
  *  @return  1 = erfolgreich, 0 = fehler.
  */
-int writeFile(string text = "", char mode = 'a', string path = "ergebnisse.txt")
+int writeFile(string text = "", char mode = 'a', string path = "")
 {
+    if (path == "")
+    {
+        path = "log/" + dateTime() + ".txt";
+    }
     ofstream f;
     try
     {
@@ -311,7 +329,7 @@ vector<vector<string> > getMapsData(vector<pid_t> *prozesse)
 string processInfoToString(vector<pid_t> *prozesse)
 {
     // Header
-    string output = "----- Process info -----\t\t\t----- Memory Usgae -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
+    string output = "----- Process info -----\t\t\t----- Memory Usage -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
     vector<vector<string> > stats = getStatData(prozesse);
     vector<vector<string> > mems = getStatmData(prozesse);
     vector<vector<string> > maps = getMapsData(prozesse);
@@ -335,9 +353,6 @@ int main()
     bool running = true;
     int option, request = 0;
     string output, path;
-
-    // Clear ergebnisse.txt
-    writeFile("", 'w');
 
     menu();
 
@@ -364,7 +379,7 @@ int main()
         // Prozess infos ausgeben
         case Process_infos:
             output = processInfoToString(&prozesse);
-            writeFile("Prozess Infos von Abfrage " + to_string(request) + ":\n" + output + "\n");
+            writeFile(output);
             cout << output << endl;
             break;
 
@@ -380,7 +395,10 @@ int main()
         // Eingabe des Dateinamen aus dem man auslesen möchte
         // cout << "Bitte geben Sie den Dateinamen ein: ";
         case Readfile:
-            cout << readFile();
+            cout << "Test";
+            //execlp(current_path/ls, "ls", "-l", NULL);
+            // TODO log ordner ausgeben/einlesen
+            //cout << readFile();
             break;
 
         // Menue Clearen
