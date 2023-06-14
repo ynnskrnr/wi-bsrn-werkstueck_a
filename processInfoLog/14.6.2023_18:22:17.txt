@@ -1,0 +1,3 @@
+----- Process info -----			----- Memory Usage -----
+PID	Rechte	UID	GID	Name		size	resident	share	text	data
+17094	r--p	16806	17094	(main)		1553	864		832	7	100	
