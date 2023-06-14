@@ -12,6 +12,8 @@
 
 
 using namespace std;
+const string LOG_FOLDER = "processInfoLog";
+const string OPTION_FOLDER = "options";
 
 /**
  *  @brief Erzeugt parallele laufenden Kinderprozess
@@ -157,7 +159,7 @@ int input()
  *  @param path  Pfad von der zu lesenden Datei
  *  @return  Inhalt der Datei
  */
-string readFile(string path = "log/ergebnisse.txt")
+string readFile(string path)
 {
     ifstream file(path);
     // Fehler abfangen wenn die Datei nicht existiert(oder andere Fehler)
@@ -185,7 +187,7 @@ string dateTime()
     tm *ltm = localtime(&now);
     string date = to_string(ltm->tm_mday) + "." + to_string(1 + ltm->tm_mon) + "." + to_string(1900 + ltm->tm_year);
     string time = to_string(ltm->tm_hour) + ":" + to_string(ltm->tm_min) + ":" + to_string(ltm->tm_sec);
-    return date + " " + time;
+    return date + "_" + time;
 }
 
 /**
@@ -199,7 +201,7 @@ int writeFile(string text = "", char mode = 'a', string path = "")
 {
     if (path == "")
     {
-        path = "log/" + dateTime() + ".txt";
+        path = LOG_FOLDER + "/" + dateTime() + ".txt";
     }
     ofstream f;
     try
@@ -388,17 +390,20 @@ int main()
         case Hallo_Welt_Ausgeben:
             if (addChild(prozesse))
             {
-                exec("./options/helloWorld");
+                exec("./" + OPTION_FOLDER + "/helloWorld");
             }
             break;
 
-        // Eingabe des Dateinamen aus dem man auslesen möchte
-        // cout << "Bitte geben Sie den Dateinamen ein: ";
+        // Lesen einer log Datei
         case Readfile:
-            cout << "Test";
-            //execlp(current_path/ls, "ls", "-l", NULL);
-            // TODO log ordner ausgeben/einlesen
-            //cout << readFile();
+            cout << "Welche der folgenden Dateien soll eingelesen werden?\n";
+            if (addChild(prozesse))
+            {
+                execlp("ls", "ls", LOG_FOLDER.c_str(), NULL);
+            }
+            cin >> path;
+            cout << readFile(LOG_FOLDER + "/" + path);
+            path = "";
             break;
 
         // Menue Clearen
