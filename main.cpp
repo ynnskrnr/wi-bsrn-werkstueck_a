@@ -377,7 +377,7 @@ int main()
     vector<pid_t> prozesse;
     // Fuegt Vaterprozess hinzu (sinnvoll, oder nicht? Zum bereinigen der ressourcen, nicht. Ansonsten schon.)
     // getpid() = syscall(SYS_getpid)
-    // prozesse.push_back(getpid());
+    prozesse.push_back(getpid());
 
     bool running = true;
     int option, request = 0;
