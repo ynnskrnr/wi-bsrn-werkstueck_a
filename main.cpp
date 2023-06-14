@@ -5,7 +5,6 @@
 // Fuer abfang von fehlereingaben
 #include <limits>
 #include <sys/wait.h>
-// include syscalls
 #include <sys/syscall.h>
 #include <fstream>
 // string to array
@@ -94,26 +93,43 @@ void releaseResources(vector<pid_t> &prozesse)
 enum Optionen
 {
     Datum_Ausgeben = 1,
-    PIDs_Ausgeben = 2,
+    Process_infos = 2,
     Hallo_Welt_Ausgeben = 3,
     Readfile = 4,
     Clear = 5,
-    Beenden = 6
+    Beenden = 6,
+    Optionen_count
 };
-
+const char *OptionenToString(Optionen option)
+{
+    switch (option)
+    {
+    case Datum_Ausgeben:
+        return "Datum Ausgeben";
+    case Process_infos:
+        return "Prozessinformationen_Ausgeben";
+    case Hallo_Welt_Ausgeben:
+        return "Hallo_Welt Ausgeben";
+    case Readfile:
+        return "Readfile";
+    case Clear:
+        return "Clear";
+    case Beenden:
+        return "Beenden und Systemressourcen Freigeben";
+    }
+    return "";
+}
 /**
  *  @brief Cleart das Terminal und gibt das Menue aus
  */
 void menu()
 {
-        cout << 1 << ". " << "Datum Ausgeben" << endl;
-        cout << 2 << ". " << "Prozessinformationen_Ausgeben" << endl;
-        cout << 3 << ". " << "Hallo_Welt Ausgeben" << endl;
-        cout << 4 << ". " << "Readfile" << endl;
-        cout << 5 << ". " << "Clear" << endl;
-        cout << 6<< ". " << "Beenden und Systemressourcen Freigeben" << endl;
+    system("clear");
+    for (int i = 1; i <= Optionen_count - 1; ++i)
+    {
+        cout << i << ". " << OptionenToString(static_cast<Optionen>(i)) << endl;
+    }
 }
-
 /**
  *  @brief Fragt an welches Funktion des Programms gestartet werden soll
  *  @return  Eingegebene Option.
@@ -211,9 +227,9 @@ string procReq(pid_t pid, string info)
  *  @returns 0 = PID, 1 = filename, 2 = state, 3 = PPID, 4 = GID, 5 = UID, ...
  *  @details https://linux.die.net/man/5/proc (/proc/[pid]/stat)
  */
-vector<vector<string>> getStatData(vector<pid_t> *prozesse)
+vector<vector<string> > getStatData(vector<pid_t> *prozesse)
 {
-    vector<vector<string>> stats;
+    vector<vector<string> > stats;
     string procPIDstat;
     for (pid_t pid : *prozesse)
     {
@@ -233,34 +249,14 @@ vector<vector<string>> getStatData(vector<pid_t> *prozesse)
 }
 
 /**
- *  @note Nicht benutzen
- *  @brief Prozessinformationen als Tabelle
- *  @param prozesse  Liste der PIDs der Prozesse
- *  @return  Prozessinformationen von allen Prozessen als Tabelle.
- */
-string statInfoToString(vector<pid_t> *prozesse)
-{
-    // Header
-    string output = "\t--- Process info ---\nPID\tUID\tGID\tRAM\tName\n";
-    vector<vector<string>> stats = getStatData(prozesse);
-
-    for (vector<string> stat : stats)
-    {
-        output += stat[0] + "\t" + "\t" + stat[4] + "\t" + stat[5] + "\t" + stat[24] + "\t" + stat[1];
-        output += "\n";
-    }
-    return output;
-}
-
-/**
  *  @brief Liest die Informationen ueber RAM-Nutzung aller Prozesse aus
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste (7 Spalten) der RAM-Nutzung von allen Prozessen.
  *  @returns 0 = size, 1 = resident, 2 = share, 3 = text, 4 = lib, 5 = data, 6 = dt
  */
-vector<vector<string>> getStatmData(vector<pid_t> *prozesse)
+vector<vector<string> > getStatmData(vector<pid_t> *prozesse)
 {
-    vector<vector<string>> stats;
+    vector<vector<string> > stats;
     string procPIDstat;
     for (pid_t pid : *prozesse)
     {
@@ -280,34 +276,15 @@ vector<vector<string>> getStatmData(vector<pid_t> *prozesse)
 }
 
 /**
- *  @brief Ram-Informationen als Tabelle
- *  @param prozesse  Liste der PIDs der Prozesse
- *  @return  Ram-Informationen von allen Prozessen als Tabelle.
- */
-string memInfoToString(vector<pid_t> *prozesse)
-{
-    // Header
-    string output = "\t--- Memory Usgae info ---\nsize\tresident\tshare\ttext\tdata\n";
-    vector<vector<string>> stats = getStatmData(prozesse);
-
-    for (vector<string> stat : stats)
-    {
-        output += stat[0] + "\t" + stat[1] + "\t\t" + stat[2] + "\t" + stat[3] + "\t" + stat[5];
-        output += "\n";
-    }
-    return output;
-}
-
-/**
  *  @brief Liest die Informationen ueber Speicheradresse und Rechte aller Prozesse aus
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste (6 Spalten) der Speicheradresse und Rechte allen Prozessen.
  *  @returns 0 = Speicheradresse, 1 = Rechte, 2 = Offset, 3 = Device, 4 = Inode, 5 = Dateiname
  *  @details Rechte: r = read, w = write, x = execute, s = shared, p = private (copy on write)
  */
-vector<vector<string>> getMapsData(vector<pid_t> *prozesse)
+vector<vector<string> > getMapsData(vector<pid_t> *prozesse)
 {
-    vector<vector<string>> stats;
+    vector<vector<string> > stats;
     string procPIDstat;
     for (pid_t pid : *prozesse)
     {
@@ -327,27 +304,6 @@ vector<vector<string>> getMapsData(vector<pid_t> *prozesse)
 }
 
 /**
- *  @brief Speicheradresse und Rechte als Tabelle
- *  @param prozesse  Liste der PIDs der Prozesse
- *  @return  Speicheradresse und Rechte von allen Prozessen als Tabelle.
- */
-string mapsInfoToString(vector<pid_t> *prozesse)
-{
-    // Header
-    string output = "--- Mapped Memory and Permissions ---\naddress\t\t\t\tperms\toffset\t\tdev\tinode\tpathname\n";
-    vector<vector<string>> maps = getMapsData(prozesse);
-
-    for (vector<string> map : maps)
-    {
-        for (string ma : map)
-        {
-            output += ma + "\t";
-        }
-    }
-    return output;
-}
-
-/**
  *  @brief Alle Prozessinformationen als Tabelle
  *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Alle Prozessinformationen von allen Prozessen als Tabelle.
@@ -356,9 +312,9 @@ string processInfoToString(vector<pid_t> *prozesse)
 {
     // Header
     string output = "----- Process info -----\t\t\t----- Memory Usgae -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
-    vector<vector<string>> stats = getStatData(prozesse);
-    vector<vector<string>> mems = getStatmData(prozesse);
-    vector<vector<string>> maps = getMapsData(prozesse);
+    vector<vector<string> > stats = getStatData(prozesse);
+    vector<vector<string> > mems = getStatmData(prozesse);
+    vector<vector<string> > maps = getMapsData(prozesse);
 
     for (size_t i = 0; i < stats.size(); i++)
     {
@@ -370,22 +326,15 @@ string processInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
-
 // main
 int main()
 {
     vector<pid_t> prozesse;
-    // Fuegt Vaterprozess hinzu (sinnvoll, oder nicht? Zum bereinigen der ressourcen, nicht. Ansonsten schon.)
-    // getpid() = syscall(SYS_getpid)
     prozesse.push_back(getpid());
 
     bool running = true;
     int option, request = 0;
     string output, path;
-
-    // Erstellen einer ergebnisse Textdatei und umlenken der Standardausgabe in die Textdatei
-    // FILE *outputFile = fopen("ergebnisse.txt", "w");
-    // freopen("ergebnissoptione.txt", "w", stdout);
 
     // Clear ergebnisse.txt
     writeFile("", 'w');
@@ -402,7 +351,8 @@ int main()
         cout << request << ". "
              << "Request: " << endl;
         // Ausfuehrung der gewaehlten Option
-        switch (option){
+        switch (option)
+        {
         // Datum ausgeben
         case Datum_Ausgeben:
             if (addChild(prozesse))
@@ -411,19 +361,11 @@ int main()
             }
             break;
 
-        // PID infos ausgeben
-        case PIDs_Ausgeben:
-            for (pid_t i : prozesse)
-            {
-                output += to_string(i) + ",\t";
-            }
-            output += "\n";
-            writeFile("PIDs from request " + to_string(request) + ": " + output);
+        // Prozess infos ausgeben
+        case Process_infos:
+            output = processInfoToString(&prozesse);
+            writeFile("Prozess Infos von Abfrage " + to_string(request) + ":\n" + output + "\n");
             cout << output << endl;
-            // cout << statInfoToString(&prozesse) << endl;
-            // cout << memInfoToString(&prozesse) << endl;
-            // cout << mapsInfoToString(&prozesse) << endl;
-            cout << processInfoToString(&prozesse) << endl;
             break;
 
         // Hello World! mit fork() und exec()
@@ -437,17 +379,15 @@ int main()
 
         // Eingabe des Dateinamen aus dem man auslesen möchte
         // cout << "Bitte geben Sie den Dateinamen ein: ";
-        // cin >> path;
-        // cout << readFile(path);
         case Readfile:
             cout << readFile();
             break;
-        
+
         // Menue Clearen
         case Clear:
             menu();
             break;
-        // Prgramm beenden    
+        // Prgramm beenden
         case Beenden:
             cout << "Beenden" << endl;
             running = false;
@@ -461,9 +401,6 @@ int main()
     }
 
     releaseResources(prozesse);
-
-    // Schliessen der ergebnisse Textdatei
-    // fclose(outputFile);
 
     return 0;
 }
