@@ -98,11 +98,13 @@ enum Optionen
     Datum_Ausgeben = 1,
     Process_infos = 2,
     Hallo_Welt_Ausgeben = 3,
-    Readfile = 4,
-    Clear = 5,
-    Beenden = 6,
+    Eltern_Kind_Prozess = 4,
+    Readfile = 5,
+    Clear = 6,
+    Beenden = 7,
     Optionen_count
 };
+
 const char *OptionenToString(Optionen option)
 {
     switch (option)
@@ -113,6 +115,8 @@ const char *OptionenToString(Optionen option)
         return "Prozessinformationen_Ausgeben";
     case Hallo_Welt_Ausgeben:
         return "Hallo_Welt Ausgeben";
+    case Eltern_Kind_Prozess:
+        return "Eltern_Kind_Prozess";
     case Readfile:
         return "Readfile";
     case Clear:
@@ -122,6 +126,7 @@ const char *OptionenToString(Optionen option)
     }
     return "";
 }
+
 /**
  *  @brief Cleart das Terminal und gibt das Menue aus
  */
@@ -346,6 +351,18 @@ string processInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
+void visualizeRelationship(vector<pid_t> *prozesse){
+    pid_t pid_vater = getpid();
+    for (auto pid = prozesse->begin(); pid != prozesse->end(); ++pid) {
+        if (pid_vater == *pid) {
+            std::cout << "Vater: " << pid_vater << std::endl;
+        } else {
+            std::cout << "Kind: " << *pid << std::endl;
+        }
+    }
+
+}
+
 // main
 int main()
 {
@@ -392,6 +409,10 @@ int main()
             {
                 exec("./" + OPTION_FOLDER + "/helloWorld");
             }
+            break;
+
+        case Eltern_Kind_Prozess:
+            visualizeRelationship(&prozesse);
             break;
 
         // Lesen einer log Datei
