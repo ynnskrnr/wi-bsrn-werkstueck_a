@@ -351,6 +351,10 @@ string processInfoToString(vector<pid_t> *prozesse)
     return output;
 }
 
+/**
+ *  @brief Zeig die Beziehung zwischen Vater- und Kindprozessen an
+ *  @param prozesse  Liste der PIDs der Prozesse
+ */
 void visualizeRelationship(vector<pid_t> *prozesse){
     pid_t pid_vater = getpid();
     for (auto pid = prozesse->begin(); pid != prozesse->end(); ++pid) {
