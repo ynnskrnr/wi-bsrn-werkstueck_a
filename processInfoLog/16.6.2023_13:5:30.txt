@@ -1,0 +1,5 @@
+----- Process info -----			----- Memory Usage -----
+PID	Rechte	UID	GID	Name		size	resident	share	text	data
+6930	r--p	3885	6930	(main)		1554	864		832	8	100	
+6940		3885	6930	(date)		0	0		0	0	0	
+6941		3885	6930	(helloWorld)	0	0		0	0	0	

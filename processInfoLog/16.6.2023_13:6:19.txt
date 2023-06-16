@@ -1,0 +1,5 @@
+----- Process info -----			----- Memory Usage -----
+PID	Rechte	UID	GID	Name		size	resident	share	text	data
+7064	r--p	3885	7064	(main)		1554	864		832	8	100	
+7074		3885	7064	(date)		0	0		0	0	0	
+7075		3885	7064	(helloWorld)	0	0		0	0	0	

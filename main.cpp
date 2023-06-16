@@ -2,7 +2,7 @@
 #include <vector>
 // fork/exec
 #include <unistd.h>
-// Fuer abfang von fehlereingaben
+// Fuer abfang von ehlereingaben
 #include <limits>
 #include <sys/wait.h>
 #include <sys/syscall.h>
@@ -19,7 +19,7 @@ vector<pid_t> prozesse;
  *  @brief Erzeugt parallele laufenden Kinderprozess und fügt diesen in die prozesse Liste ein
  *  @return  1 = Child, 0 = Parent.
  */
-int addChild()
+int child()
 {
     pid_t pid = fork();
     if (pid)
@@ -70,7 +70,7 @@ void releaseResources()
     {
         // Terminiert noch laufende Prozesse
         kill(pid, SIGTERM);
-        // Prueft ob prozess bereits durchlaufen, oder terminiert wurde
+        // Prueft ob prozess bereits durchlaufen bzw. terminiert wurde
         if (waitpid(pid, &status, 0) == -1)
         {
             perror("waitpid fehlgeschlagen");
@@ -93,34 +93,34 @@ void releaseResources()
 
 enum Optionen
 {
-    Datum_Ausgeben = 1,
-    Process_infos = 2,
-    Hallo_Welt_Ausgeben = 3,
-    Eltern_Kind_Prozess = 4,
-    Readfile = 5,
-    Clear = 6,
-    Beenden = 7,
-    Optionen_count
+    DATUM_AUSGEBN = 1,
+    PROCESS_INFO = 2,
+    HALLO_WELT_AUSGEBEN = 3,
+    ELTERN_KIND_PROZESS = 4,
+    DATEI_LESEN = 5,
+    CLEAR = 6,
+    BEENDEN = 7,
+    OPTIONEN_COUNT
 };
 
 string OptionenToString(Optionen option)
 {
     switch (option)
     {
-    case Datum_Ausgeben:
+    case DATUM_AUSGEBN:
         return "Datum Ausgeben";
-    case Process_infos:
-        return "Prozessinformationen_Ausgeben";
-    case Hallo_Welt_Ausgeben:
-        return "Hallo_Welt Ausgeben";
-    case Eltern_Kind_Prozess:
-        return "Eltern_Kind_Prozess";
-    case Readfile:
-        return "Readfile";
-    case Clear:
-        return "Clear";
-    case Beenden:
-        return "Beenden und Systemressourcen Freigeben";
+    case PROCESS_INFO:
+        return "Prozessinformationen ausgeben";
+    case HALLO_WELT_AUSGEBEN:
+        return "\"Hello World!\" ausgeben";
+    case ELTERN_KIND_PROZESS:
+        return "Prozesshyrachie anzeigen";
+    case DATEI_LESEN:
+        return "Logdatei lesen";
+    case CLEAR:
+        return "Konsole bereinigen";
+    case BEENDEN:
+        return "Beenden und Systemressourcen freigeben";
     }
     return "";
 }
@@ -131,7 +131,7 @@ string OptionenToString(Optionen option)
 void menu()
 {
     system("clear");
-    for (int i = 1; i <= Optionen_count - 1; ++i)
+    for (int i = 1; i <= OPTIONEN_COUNT - 1; ++i)
     {
         cout << i << ". " << OptionenToString(static_cast<Optionen>(i)) << endl;
     }
@@ -255,6 +255,7 @@ vector<vector<string>> getStatData()
     {
         procPIDstat = procReq(pid, "stat"); // info von /proc/[pid]/stat
 
+        // words = 44, da die request proc/pid/stat infos enthält
         int i = 0, words = 44;
         vector<string> statArray(words);
         stringstream ssin(procPIDstat);
@@ -275,23 +276,23 @@ vector<vector<string>> getStatData()
  */
 vector<vector<string>> getStatmData()
 {
-    vector<vector<string>> stats;
-    string procPIDstat;
+    vector<vector<string>> statms;
+    string procPIDstatm;
     for (pid_t pid : prozesse)
     {
-        procPIDstat = procReq(pid, "statm");
+        procPIDstatm = procReq(pid, "statm");
 
         int i = 0, words = 7;
-        vector<string> statArray(words);
-        stringstream ssin(procPIDstat);
+        vector<string> statmArray(words);
+        stringstream ssin(procPIDstatm);
         while (ssin.good() && i < words)
         {
-            ssin >> statArray[i];
+            ssin >> statmArray[i];
             i++;
         }
-        stats.push_back(statArray);
+        statms.push_back(statmArray);
     }
-    return stats;
+    return statms;
 }
 
 /**
@@ -302,23 +303,23 @@ vector<vector<string>> getStatmData()
  */
 vector<vector<string>> getMapsData()
 {
-    vector<vector<string>> stats;
-    string procPIDstat;
+    vector<vector<string>> mapss;
+    string procPIDmaps;
     for (pid_t pid : prozesse)
     {
-        procPIDstat = procReq(pid, "maps");
+        procPIDmaps = procReq(pid, "maps");
 
         int i = 0, words = 6;
-        vector<string> statArray(words);
-        stringstream ssin(procPIDstat);
+        vector<string> mapsArray(words);
+        stringstream ssin(procPIDmaps);
         while (ssin.good() && i < words)
         {
-            ssin >> statArray[i];
+            ssin >> mapsArray[i];
             i++;
         }
-        stats.push_back(statArray);
+        mapss.push_back(mapsArray);
     }
-    return stats;
+    return mapss;
 }
 
 /**
@@ -334,7 +335,9 @@ string processInfoToString()
 
     for (size_t i = 0; i < stats.size(); i++)
     {
+        // Bei kurzem Namen Tab hinzufügen
         stats[i][1].length() < 8 ? stats[i][1] += "\t" : "";
+
         output += stats[i][0] + "\t" + maps[i][1] + "\t" + stats[i][5] + "\t" + stats[i][4] + "\t" + stats[i][1] + "\t" +
                   mems[i][0] + "\t" + mems[i][1] + "\t\t" + mems[i][2] + "\t" + mems[i][3] + "\t" + mems[i][5] + "\t";
         output += "\n";
@@ -347,12 +350,12 @@ string processInfoToString()
  */
 void visualizeRelationship()
 {
-    pid_t pid_vater = getpid();
+    pid_t pidVater = getpid();
     for (auto pid = prozesse.begin(); pid != prozesse.end(); ++pid)
     {
-        if (pid_vater == *pid)
+        if (pidVater == *pid)
         {
-            std::cout << "Vater: " << pid_vater << std::endl;
+            std::cout << "Vater: " << pidVater << std::endl;
         }
         else
         {
@@ -385,15 +388,15 @@ int main()
         switch (option)
         {
         // Datum ausgeben
-        case Datum_Ausgeben:
-            if (addChild())
+        case DATUM_AUSGEBN:
+            if (child())
             {
                 date();
             }
             break;
 
         // Prozess infos ausgeben
-        case Process_infos:
+        case PROCESS_INFO:
             output = processInfoToString();
             writeFile(output);
             cout << output << endl;
@@ -401,21 +404,21 @@ int main()
 
         // Hello World! mit fork() und exec()
         // So werden die einzelnen Funktionen des Programms aufgerufen (Dateinen sind in options/)
-        case Hallo_Welt_Ausgeben:
-            if (addChild())
+        case HALLO_WELT_AUSGEBEN:
+            if (child())
             {
                 exec("./" + OPTION_FOLDER + "/helloWorld");
             }
             break;
 
-        case Eltern_Kind_Prozess:
+        case ELTERN_KIND_PROZESS:
             visualizeRelationship();
             break;
 
         // Lesen einer log Datei
-        case Readfile:
+        case DATEI_LESEN:
             cout << "Welche der folgenden Dateien soll eingelesen werden?\n";
-            if (addChild())
+            if (child())
             {
                 execlp("ls", "ls", LOG_FOLDER.c_str(), NULL);
             }
@@ -425,11 +428,11 @@ int main()
             break;
 
         // Menue Clearen
-        case Clear:
+        case CLEAR:
             menu();
             break;
         // Prgramm beenden
-        case Beenden:
+        case BEENDEN:
             cout << "Beenden" << endl;
             running = false;
             break;
