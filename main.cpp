@@ -10,17 +10,16 @@
 // string to array
 #include <sstream>
 
-
 using namespace std;
 const string LOG_FOLDER = "processInfoLog";
 const string OPTION_FOLDER = "options";
+vector<pid_t> prozesse;
 
 /**
- *  @brief Erzeugt parallele laufenden Kinderprozess
- *  @param prozesse  Prozesse vector in den der Kinderprozess eingefuegt wird
+ *  @brief Erzeugt parallele laufenden Kinderprozess und fügt diesen in die prozesse Liste ein
  *  @return  1 = Child, 0 = Parent.
  */
-int addChild(vector<pid_t> &prozesse)
+int addChild()
 {
     pid_t pid = fork();
     if (pid)
@@ -62,9 +61,8 @@ void exec(string path)
 
 /**
  *  @brief Terminiert und loescht alle laufenden Prozesse
- *  @param prozesse  Vector mit allen Prozessen
  */
-void releaseResources(vector<pid_t> &prozesse)
+void releaseResources()
 {
     int status;
     sleep(1);
@@ -105,7 +103,7 @@ enum Optionen
     Optionen_count
 };
 
-const char *OptionenToString(Optionen option)
+string OptionenToString(Optionen option)
 {
     switch (option)
     {
@@ -160,7 +158,6 @@ int input()
 }
 
 /**
- *  @brief Liest inhalt einer Datei aus
  *  @param path  Pfad von der zu lesenden Datei
  *  @return  Inhalt der Datei
  */
@@ -183,7 +180,6 @@ string readFile(string path)
 }
 
 /**
- *  @brief Gibt Datum und Uhrzeit aus
  *  @return  Datum und Uhrzeit
  */
 string dateTime()
@@ -234,9 +230,9 @@ int writeFile(string text = "", char mode = 'a', string path = "")
 }
 
 /**
- *  @brief Vereinfachte /proc/[pid]/ Abfrage
- *  @param pid  PID des Prozesses
- *  @param info  /proc/[pid]/...info
+ *  @brief Vereinfachte /proc/[pid]/.. Abfrage
+ *  @param pid  /proc/#pid#/..
+ *  @param info  /proc/../#info#
  *  @return  Ergebnis der Anfrage.
  */
 string procReq(pid_t pid, string info)
@@ -247,16 +243,15 @@ string procReq(pid_t pid, string info)
 
 /**
  *  @brief Liest die Informationen aller Prozesse aus
- *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste (44 Spalten) der Prozessinformationen von allen Prozessen.
  *  @returns 0 = PID, 1 = filename, 2 = state, 3 = PPID, 4 = GID, 5 = UID, ...
  *  @details https://linux.die.net/man/5/proc (/proc/[pid]/stat)
  */
-vector<vector<string> > getStatData(vector<pid_t> *prozesse)
+vector<vector<string>> getStatData()
 {
-    vector<vector<string> > stats;
+    vector<vector<string>> stats;
     string procPIDstat;
-    for (pid_t pid : *prozesse)
+    for (pid_t pid : prozesse)
     {
         procPIDstat = procReq(pid, "stat"); // info von /proc/[pid]/stat
 
@@ -275,15 +270,14 @@ vector<vector<string> > getStatData(vector<pid_t> *prozesse)
 
 /**
  *  @brief Liest die Informationen ueber RAM-Nutzung aller Prozesse aus
- *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste (7 Spalten) der RAM-Nutzung von allen Prozessen.
  *  @returns 0 = size, 1 = resident, 2 = share, 3 = text, 4 = lib, 5 = data, 6 = dt
  */
-vector<vector<string> > getStatmData(vector<pid_t> *prozesse)
+vector<vector<string>> getStatmData()
 {
-    vector<vector<string> > stats;
+    vector<vector<string>> stats;
     string procPIDstat;
-    for (pid_t pid : *prozesse)
+    for (pid_t pid : prozesse)
     {
         procPIDstat = procReq(pid, "statm");
 
@@ -302,16 +296,15 @@ vector<vector<string> > getStatmData(vector<pid_t> *prozesse)
 
 /**
  *  @brief Liest die Informationen ueber Speicheradresse und Rechte aller Prozesse aus
- *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Liste (6 Spalten) der Speicheradresse und Rechte allen Prozessen.
  *  @returns 0 = Speicheradresse, 1 = Rechte, 2 = Offset, 3 = Device, 4 = Inode, 5 = Dateiname
  *  @details Rechte: r = read, w = write, x = execute, s = shared, p = private (copy on write)
  */
-vector<vector<string> > getMapsData(vector<pid_t> *prozesse)
+vector<vector<string>> getMapsData()
 {
-    vector<vector<string> > stats;
+    vector<vector<string>> stats;
     string procPIDstat;
-    for (pid_t pid : *prozesse)
+    for (pid_t pid : prozesse)
     {
         procPIDstat = procReq(pid, "maps");
 
@@ -329,17 +322,15 @@ vector<vector<string> > getMapsData(vector<pid_t> *prozesse)
 }
 
 /**
- *  @brief Alle Prozessinformationen als Tabelle
- *  @param prozesse  Liste der PIDs der Prozesse
  *  @return  Alle Prozessinformationen von allen Prozessen als Tabelle.
  */
-string processInfoToString(vector<pid_t> *prozesse)
+string processInfoToString()
 {
     // Header
     string output = "----- Process info -----\t\t\t----- Memory Usage -----\nPID\tRechte\tUID\tGID\tName\t\tsize\tresident\tshare\ttext\tdata\n";
-    vector<vector<string> > stats = getStatData(prozesse);
-    vector<vector<string> > mems = getStatmData(prozesse);
-    vector<vector<string> > maps = getMapsData(prozesse);
+    vector<vector<string>> stats = getStatData();
+    vector<vector<string>> mems = getStatmData();
+    vector<vector<string>> maps = getMapsData();
 
     for (size_t i = 0; i < stats.size(); i++)
     {
@@ -353,24 +344,26 @@ string processInfoToString(vector<pid_t> *prozesse)
 
 /**
  *  @brief Zeig die Beziehung zwischen Vater- und Kindprozessen an
- *  @param prozesse  Liste der PIDs der Prozesse
  */
-void visualizeRelationship(vector<pid_t> *prozesse){
+void visualizeRelationship()
+{
     pid_t pid_vater = getpid();
-    for (auto pid = prozesse->begin(); pid != prozesse->end(); ++pid) {
-        if (pid_vater == *pid) {
+    for (auto pid = prozesse.begin(); pid != prozesse.end(); ++pid)
+    {
+        if (pid_vater == *pid)
+        {
             std::cout << "Vater: " << pid_vater << std::endl;
-        } else {
+        }
+        else
+        {
             std::cout << "Kind: " << *pid << std::endl;
         }
     }
-
 }
 
 // main
 int main()
 {
-    vector<pid_t> prozesse;
     prozesse.push_back(getpid());
 
     bool running = true;
@@ -393,7 +386,7 @@ int main()
         {
         // Datum ausgeben
         case Datum_Ausgeben:
-            if (addChild(prozesse))
+            if (addChild())
             {
                 date();
             }
@@ -401,7 +394,7 @@ int main()
 
         // Prozess infos ausgeben
         case Process_infos:
-            output = processInfoToString(&prozesse);
+            output = processInfoToString();
             writeFile(output);
             cout << output << endl;
             break;
@@ -409,20 +402,20 @@ int main()
         // Hello World! mit fork() und exec()
         // So werden die einzelnen Funktionen des Programms aufgerufen (Dateinen sind in options/)
         case Hallo_Welt_Ausgeben:
-            if (addChild(prozesse))
+            if (addChild())
             {
                 exec("./" + OPTION_FOLDER + "/helloWorld");
             }
             break;
 
         case Eltern_Kind_Prozess:
-            visualizeRelationship(&prozesse);
+            visualizeRelationship();
             break;
 
         // Lesen einer log Datei
         case Readfile:
             cout << "Welche der folgenden Dateien soll eingelesen werden?\n";
-            if (addChild(prozesse))
+            if (addChild())
             {
                 execlp("ls", "ls", LOG_FOLDER.c_str(), NULL);
             }
@@ -448,7 +441,7 @@ int main()
         }
     }
 
-    releaseResources(prozesse);
+    releaseResources();
 
     return 0;
 }
