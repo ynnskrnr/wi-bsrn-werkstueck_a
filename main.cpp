@@ -114,7 +114,7 @@ string OptionenToString(Optionen option)
     case HALLO_WELT_AUSGEBEN:
         return "\"Hello World!\" ausgeben";
     case ELTERN_KIND_PROZESS:
-        return "Prozesshyrachie anzeigen";
+        return "Prozesshierarchie anzeigen";
     case DATEI_LESEN:
         return "Logdatei lesen";
     case CLEAR:
