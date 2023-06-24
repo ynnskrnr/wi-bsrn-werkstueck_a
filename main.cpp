@@ -355,11 +355,11 @@ void visualizeRelationship()
     {
         if (pidVater == *pid)
         {
-            std::cout << "Vater: " << pidVater << std::endl;
+            cout << "Vater: " << pidVater << endl;
         }
         else
         {
-            std::cout << "Kind: " << *pid << std::endl;
+            cout << "Kind: " << *pid << endl;
         }
     }
 }
