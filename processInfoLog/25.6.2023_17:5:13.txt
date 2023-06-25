@@ -1,0 +1,4 @@
+----- Process info -----			----- Memory Usage -----
+PID	Rechte	UID	GID	Name		size	resident	share	text	data
+844	r--p	844	844	(main)		1512	914		862	7	98	
+872		844	844	(date)		0	0		0	0	0	

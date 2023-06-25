@@ -1,0 +1,4 @@
+----- Process info -----			----- Memory Usage -----
+PID	Rechte	UID	GID	Name		size	resident	share	text	data
+519	r--p	496	519	(main)		21273	1733		1618	7	2208	
+534		496	519	(date)		0	0		0	0	0	
